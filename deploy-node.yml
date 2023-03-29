@@ -1,0 +1,51 @@
+---
+- name : Install node and npm
+  hosts : nodes
+  tasks :
+    - name: Update cache
+      apt:
+        update_cache : true
+        cache_valid_time : 3600
+        force_apt_get : true
+    - name : Install nodejs 
+      apt:
+        name: nodejs
+        state: present
+    - name: Install npm
+      apt:
+       name: npm
+       state : present
+- name : Delpoy nodejs app
+  hosts: nodes
+  tasks:
+    - name: Copy nodejs folder
+      copy :
+        src:  nodejs.tar
+        dest: "{{tar_path}}"
+    - name: Unpack nodjs file
+      unarchive:
+        src: "{{tar_path}}"
+        dest : /root
+        remote_src: yes
+    - name: install dependancy
+      npm: 
+        path: "{{pkg_path}}"
+    - name: start app
+      command:
+        chdir: "{{pkg_path}}/app"
+        cmd: node server
+      async: 1000
+      poll : 0
+    - name: ensure app is running
+      shell : ps aux | grep node
+      register: output
+    - name: print output
+      debug:
+       msg: "{{output}}"
+
+
+ 
+             
+
+        
+
